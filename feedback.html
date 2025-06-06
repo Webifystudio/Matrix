@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MATRIX MC | Player Feedback</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Oxanium', sans-serif;
+            scroll-behavior: smooth;
+            background-color: #0a0a0a;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+        
+        .minecraft-bg {
+            background-image: url('https://images.unsplash.com/photo-1585771724684-38270d0d4a5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        
+        .section {
+            min-height: 100vh;
+            padding: 6rem 2rem;
+            position: relative;
+        }
+        
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(10,10,10,0.8) 0%, rgba(10,10,10,0.95) 100%);
+            z-index: -1;
+        }
+        
+        .glow-text {
+            text-shadow: 0 0 10px rgba(74, 222, 128, 0.7);
+        }
+        
+        .glow-box {
+            box-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .glow-box:hover {
+            box-shadow: 0 0 30px rgba(74, 222, 128, 0.5);
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background-color: #4ade80;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(74, 222, 128, 0.3);
+        }
+        
+        .feedback-card {
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(74, 222, 128, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .feedback-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(74, 222, 128, 0.5);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 1s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .rating-star {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .rating-star:hover {
+            transform: scale(1.2);
+        }
+        
+        .rating-star.active {
+            color: #fbbf24;
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.7);
+        }
+        
+        .scroll-down {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #4ade80;
+            font-size: 2rem;
+            animation: bounce 2s infinite;
+            cursor: pointer;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0) translateX(-50%); }
+            40% { transform: translateY(-20px) translateX(-50%); }
+            60% { transform: translateY(-10px) translateX(-50%); }
+        }
+        
+        @media (max-width: 768px) {
+            .section {
+                padding: 5rem 1rem;
+            }
+            
+            .feedback-card {
+                padding: 1.5rem;
+            }
+            
+            .text-6xl {
+                font-size: 3rem;
+            }
+            
+            .text-4xl {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body class="text-gray-200">
+    <!-- Header -->
+    <header class="fixed w-full bg-black bg-opacity-90 z-50 border-b border-gray-800">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="text-2xl font-bold text-green-500 glow-text">
+                    MATRIX<span class="text-white">MC</span>
+                </div>
+                
+                <nav class="hidden md:flex space-x-8">
+                    <a href="https://teammatrix.netlify.app/" class="nav-link text-sm uppercase tracking-wider hover:text-green-400">Home</a>
+                </nav>
+                
+                <div class="md:hidden">
+                    <button id="menu-toggle" class="text-gray-300 hover:text-green-400 focus:outline-none">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile menu -->
+            <div id="mobile-menu" class="hidden md:hidden mt-4 pb-2">
+                <div class="flex flex-col space-y-3">
+                    <a href="#home" class="nav-link text-sm uppercase tracking-wider hover:text-green-400">Home</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="section minecraft-bg flex items-center justify-center">
+        <div class="container mx-auto px-4 text-center">
+            <div class="floating">
+                <h1 class="text-4xl md:text-6xl font-bold mb-6 text-white glow-text">
+                    <span class="text-green-500">MATRIX</span> FEEDBACK
+                </h1>
+            </div>
+            <p class="text-xl md:text-2xl mb-8 text-gray-300 max-w-3xl mx-auto fade-in">
+                Help us improve your gaming experience by submitting feedback, bug reports, or player reports
+            </p>
+            
+            <div class="scroll-down" onclick="scrollToSection('feedback')">
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feedback Section -->
+    <section id="feedback" class="section bg-gradient-to-b from-black to-gray-900">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-white">
+                    SUBMIT <span class="text-green-500">FEEDBACK</span>
+                </h2>
+                <div class="w-24 h-1 bg-green-500 mx-auto"></div>
+            </div>
+            
+            <div class="max-w-4xl mx-auto">
+                <div class="feedback-card p-8 rounded-lg">
+                    <form id="feedback-form">
+                        <!-- User Information -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold mb-4 text-green-400">YOUR INFORMATION</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="username" class="block text-sm font-medium mb-2">Minecraft Username *</label>
+                                    <input type="text" id="username" name="username" required 
+                                        class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                </div>
+                                <div>
+                                    <label for="email" class="block text-sm font-medium mb-2">Email (Optional)</label>
+                                    <input type="email" id="email" name="email" 
+                                        class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Feedback Type -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold mb-4 text-green-400">FEEDBACK TYPE *</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <input type="radio" id="feedback-type-general" name="feedback-type" value="general" class="hidden peer" required>
+                                    <label for="feedback-type-general" class="flex flex-col items-center justify-center p-4 bg-gray-800 border border-gray-700 rounded-lg cursor-pointer peer-checked:border-green-500 peer-checked:bg-gray-700 hover:bg-gray-700 transition">
+                                        <i class="fas fa-comment-alt text-2xl mb-2 text-green-500"></i>
+                                        <span>General Feedback</span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="feedback-type-bug" name="feedback-type" value="bug" class="hidden peer">
+                                    <label for="feedback-type-bug" class="flex flex-col items-center justify-center p-4 bg-gray-800 border border-gray-700 rounded-lg cursor-pointer peer-checked:border-green-500 peer-checked:bg-gray-700 hover:bg-gray-700 transition">
+                                        <i class="fas fa-bug text-2xl mb-2 text-red-500"></i>
+                                        <span>Bug Report</span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="feedback-type-report" name="feedback-type" value="report" class="hidden peer">
+                                    <label for="feedback-type-report" class="flex flex-col items-center justify-center p-4 bg-gray-800 border border-gray-700 rounded-lg cursor-pointer peer-checked:border-green-500 peer-checked:bg-gray-700 hover:bg-gray-700 transition">
+                                        <i class="fas fa-flag text-2xl mb-2 text-yellow-500"></i>
+                                        <span>Player Report</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Rating Section -->
+                        <div class="mb-8" id="rating-section">
+                            <h3 class="text-xl font-semibold mb-4 text-green-400">SERVER RATING</h3>
+                            <div class="flex justify-center space-x-2 mb-4">
+                                <i class="fas fa-star rating-star text-3xl text-gray-500" data-rating="1"></i>
+                                <i class="fas fa-star rating-star text-3xl text-gray-500" data-rating="2"></i>
+                                <i class="fas fa-star rating-star text-3xl text-gray-500" data-rating="3"></i>
+                                <i class="fas fa-star rating-star text-3xl text-gray-500" data-rating="4"></i>
+                                <i class="fas fa-star rating-star text-3xl text-gray-500" data-rating="5"></i>
+                            </div>
+                            <input type="hidden" id="rating-value" name="rating" value="0">
+                            <div class="text-center text-sm text-gray-400" id="rating-text">Please rate your experience</div>
+                        </div>
+                        
+                        <!-- Feedback Details -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold mb-4 text-green-400">DETAILS *</h3>
+                            <div>
+                                <label for="feedback-details" class="block text-sm font-medium mb-2">Please provide details</label>
+                                <textarea id="feedback-details" name="feedback-details" rows="6" required
+                                    class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Player Report Fields (Hidden by default) -->
+                        <div class="mb-8 hidden" id="player-report-fields">
+                            <h3 class="text-xl font-semibold mb-4 text-yellow-400">PLAYER REPORT DETAILS</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label for="reported-player" class="block text-sm font-medium mb-2">Player Username *</label>
+                                    <input type="text" id="reported-player" name="reported-player" 
+                                        class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                </div>
+                                <div>
+                                    <label for="report-type" class="block text-sm font-medium mb-2">Report Type *</label>
+                                    <select id="report-type" name="report-type" 
+                                        class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                        <option value="">Select type</option>
+                                        <option value="cheating">Cheating/Hacking</option>
+                                        <option value="harassment">Harassment</option>
+                                        <option value="exploiting">Exploiting</option>
+                                        <option value="spamming">Spamming</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="report-evidence" class="block text-sm font-medium mb-2">Evidence (Links only)</label>
+                                <input type="text" id="report-evidence" name="report-evidence" placeholder="Paste links to evidence (YouTube, Imgur, etc.)"
+                                    class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                            </div>
+                        </div>
+                        
+                        <!-- Bug Report Fields (Hidden by default) -->
+                        <div class="mb-8 hidden" id="bug-report-fields">
+                            <h3 class="text-xl font-semibold mb-4 text-red-400">BUG REPORT DETAILS</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label for="bug-type" class="block text-sm font-medium mb-2">Bug Type *</label>
+                                    <select id="bug-type" name="bug-type" 
+                                        class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                        <option value="">Select type</option>
+                                        <option value="gameplay">Gameplay</option>
+                                        <option value="visual">Visual</option>
+                                        <option value="performance">Performance</option>
+                                        <option value="crash">Crash</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="bug-location" class="block text-sm font-medium mb-2">Location (Optional)</label>
+                                    <input type="text" id="bug-location" name="bug-location" placeholder="e.g., Survival spawn, Skyblock island"
+                                        class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="bug-steps" class="block text-sm font-medium mb-2">Steps to Reproduce *</label>
+                                <textarea id="bug-steps" name="bug-steps" rows="3"
+                                    class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                            </div>
+                            <div class="mt-4">
+                                <label for="bug-evidence" class="block text-sm font-medium mb-2">Evidence (Links only)</label>
+                                <input type="text" id="bug-evidence" name="bug-evidence" placeholder="Paste links to evidence (YouTube, Imgur, etc.)"
+                                    class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                            </div>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="text-center mt-8">
+                            <button type="submit" class="btn-primary px-8 py-4 rounded-lg text-lg font-semibold text-white pulse">
+                                <i class="fas fa-paper-plane mr-2"></i> SUBMIT FEEDBACK
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black py-12 border-t border-gray-800">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold text-green-500 mb-4">MATRIX MC</h3>
+                    <p class="text-gray-500 text-sm">
+                        Your feedback helps us improve the server experience for everyone.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4 text-gray-300">QUICK LINKS</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#home" class="text-gray-500 hover:text-green-400 transition text-sm">Home</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4 text-gray-300">CONNECT</h4>
+                    <ul class="space-y-2">
+                        <li><a href="https://discord.gg/b6hgMtU5ay" class="text-gray-500 hover:text-green-400 transition text-sm"><i class="fab fa-discord mr-2"></i> Discord</a></li>
+                        <li><a href="#" class="text-gray-500 hover:text-green-400 transition text-sm"><i class="fab fa-youtube mr-2"></i> YouTube</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center">
+                <p class="text-gray-600 text-sm">
+                    &copy; 2025 MATRIX MC. webify.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
+        import { getFirestore, collection, addDoc } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+    apiKey: "AIzaSyDj6TSp7nvuLqvQ6CLqJQTxJFHIwHHbtNE",
+    authDomain: "matrix-ed062.firebaseapp.com",
+    projectId: "matrix-ed062",
+    storageBucket: "matrix-ed062.firebasestorage.app",
+    messagingSenderId: "82407502701",
+    appId: "1:82407502701:web:c1af23c4606c2fcbd86064",
+    measurementId: "G-02680ERGSV"
+  };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const WEBHOOK_URL = 'https://discord.com/api/webhooks/1372975500082937970/jjc5Uv5crqByRGdA4IivPAGzMUDq0eVRm8EFXZ8VB4f7swxV7zRUA4EYSWctRTiXQ7j1';
+
+        // Form submission handler
+        document.getElementById('feedback-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const feedbackType = document.querySelector('input[name="feedback-type"]:checked').value;
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value || 'Not provided';
+            const details = document.getElementById('feedback-details').value;
+            
+            try {
+                if (feedbackType === 'general') {
+                    // Handle general feedback - store in Firestore
+                    const rating = document.getElementById('rating-value').value;
+                    if (rating === '0') {
+                        alert('Please provide a rating for your experience');
+                        return;
+                    }
+
+                    await addDoc(collection(db, 'testimonials'), {
+                        type: 'general',
+                        username,
+                        email,
+                        details,
+                        rating: parseInt(rating),
+                        timestamp: new Date().toISOString()
+                    });
+
+                    alert('Thank you for your feedback! It will be displayed on our homepage.');
+                } else {
+                    // Handle bug reports and player reports - send to webhook
+                    let discordMessage = {
+                        embeds: [{
+                            title: `New ${feedbackType === 'bug' ? 'Bug Report' : 'Player Report'}`,
+                            color: feedbackType === 'bug' ? 0xff0000 : 0xffff00,
+                            fields: [
+                                { name: "Reporter", value: username, inline: true },
+                                { name: "Email", value: email, inline: true },
+                                { name: "Details", value: details }
+                            ],
+                            timestamp: new Date().toISOString()
+                        }]
+                    };
+
+                    if (feedbackType === 'bug') {
+                        const bugType = document.getElementById('bug-type').value;
+                        const location = document.getElementById('bug-location').value || 'Not specified';
+                        const steps = document.getElementById('bug-steps').value;
+                        const evidence = document.getElementById('bug-evidence').value || 'No evidence provided';
+                        
+                        discordMessage.embeds[0].fields.push(
+                            { name: "Bug Type", value: bugType, inline: true },
+                            { name: "Location", value: location, inline: true },
+                            { name: "Steps to Reproduce", value: steps },
+                            { name: "Evidence Links", value: evidence }
+                        );
+                    } 
+                    else if (feedbackType === 'report') {
+                        const reportedPlayer = document.getElementById('reported-player').value;
+                        const reportType = document.getElementById('report-type').value;
+                        const evidence = document.getElementById('report-evidence').value || 'No evidence provided';
+                        
+                        discordMessage.embeds[0].fields.push(
+                            { name: "Reported Player", value: reportedPlayer, inline: true },
+                            { name: "Report Type", value: reportType, inline: true },
+                            { name: "Evidence Links", value: evidence }
+                        );
+                    }
+
+                    const response = await fetch(WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(discordMessage)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to send report to Discord');
+                    }
+
+                    alert('Thank you for your report! Our team will review it shortly.');
+                }
+
+                // Reset form
+                this.reset();
+                document.querySelectorAll('.rating-star').forEach(star => {
+                    star.classList.remove('active');
+                    star.classList.add('text-gray-500');
+                    star.classList.remove('text-yellow-400');
+                });
+                document.getElementById('rating-value').value = '0';
+                document.getElementById('rating-text').textContent = 'Please rate your experience';
+                
+            } catch (error) {
+                console.error('Error submitting feedback:', error);
+                alert('There was an error submitting your feedback. Please try again.');
+            }
+        });
+
+        // Mobile menu toggle
+        document.getElementById('menu-toggle').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Close mobile menu if open
+                    const mobileMenu = document.getElementById('mobile-menu');
+                    if (!mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                    }
+                }
+            });
+        });
+
+        // Scroll to section function
+        window.scrollToSection = function(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                window.scrollTo({
+                    top: section.offsetTop - 80,
+                    behavior: 'smooth'
+                });
+            }
+        };
+
+        // Rating stars functionality
+        const stars = document.querySelectorAll('.rating-star');
+        const ratingValue = document.getElementById('rating-value');
+        const ratingText = document.getElementById('rating-text');
+        
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                ratingValue.value = rating;
+                
+                // Update star display
+                stars.forEach((s, index) => {
+                    if (index < rating) {
+                        s.classList.add('active');
+                        s.classList.remove('text-gray-500');
+                        s.classList.add('text-yellow-400');
+                    } else {
+                        s.classList.remove('active');
+                        s.classList.add('text-gray-500');
+                        s.classList.remove('text-yellow-400');
+                    }
+                });
+                
+                // Update rating text
+                const ratingTexts = [
+                    "Please rate your experience",
+                    "Poor",
+                    "Fair",
+                    "Good",
+                    "Very Good",
+                    "Excellent"
+                ];
+                ratingText.textContent = ratingTexts[rating];
+            });
+        });
+
+        // Show/hide fields based on feedback type
+        const feedbackTypeRadios = document.querySelectorAll('input[name="feedback-type"]');
+        const playerReportFields = document.getElementById('player-report-fields');
+        const bugReportFields = document.getElementById('bug-report-fields');
+        const ratingSection = document.getElementById('rating-section');
+        
+        feedbackTypeRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'report') {
+                    playerReportFields.classList.remove('hidden');
+                    bugReportFields.classList.add('hidden');
+                    ratingSection.classList.add('hidden');
+                    
+                    // Make player report fields required
+                    document.getElementById('reported-player').required = true;
+                    document.getElementById('report-type').required = true;
+                    
+                    // Make bug report fields not required
+                    document.getElementById('bug-type').required = false;
+                    document.getElementById('bug-steps').required = false;
+                } 
+                else if (this.value === 'bug') {
+                    playerReportFields.classList.add('hidden');
+                    bugReportFields.classList.remove('hidden');
+                    ratingSection.classList.add('hidden');
+                    
+                    // Make bug report fields required
+                    document.getElementById('bug-type').required = true;
+                    document.getElementById('bug-steps').required = true;
+                    
+                    // Make player report fields not required
+                    document.getElementById('reported-player').required = false;
+                    document.getElementById('report-type').required = false;
+                }
+                else {
+                    playerReportFields.classList.add('hidden');
+                    bugReportFields.classList.add('hidden');
+                    ratingSection.classList.remove('hidden');
+                    
+                    // Make all special fields not required
+                    document.getElementById('reported-player').required = false;
+                    document.getElementById('report-type').required = false;
+                    document.getElementById('bug-type').required = false;
+                    document.getElementById('bug-steps').required = false;
+                }
+            });
+        });
+
+        // Add animation class when elements come into view
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feedback-card, .section h2, .section h3').forEach(element => {
+            observer.observe(element);
+        });
+    </script>
+</body>
+</html>

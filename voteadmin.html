@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MATRIX MC | Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <style>
+        body {
+            font-family: 'Oxanium', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+        
+        .sidebar {
+            background-color: #1e293b;
+            border-right: 1px solid #334155;
+        }
+        
+        .nav-link {
+            transition: all 0.2s ease;
+        }
+        
+        .nav-link:hover {
+            background-color: #334155;
+        }
+        
+        .nav-link.active {
+            background-color: #22c55e;
+        }
+        
+        .card {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 0.5rem;
+        }
+        
+        .table-row:hover {
+            background-color: #334155;
+        }
+        
+        .btn-primary {
+            background-color: #22c55e;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: #22c55e;
+        }
+        
+        .btn-danger {
+            background-color: #ef4444;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        
+        .btn-success {
+            background-color: #22c55e;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-success:hover {
+            background-color: #059669;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Embedded iframe styles */
+        .embed-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            max-width: 100%;
+        }
+        
+        .embed-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="flex">
+        <!-- Sidebar -->
+        <div class="sidebar w-64 min-h-screen fixed">
+            <div class="p-4 border-b border-gray-700">
+                <h1 class="text-xl font-bold text-green-500 glow-text">MATRIX MC</h1>
+                <p class="text-sm text-gray-400">Admin Panel</p>
+            </div>
+            <nav class="mt-4">
+                <ul>
+                    <li>
+                        <a href="#" class="nav-link active flex items-center p-3 text-white" data-section="dashboard">
+                            <i class="fas fa-tachometer-alt mr-3"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link flex items-center p-3 text-gray-400 hover:text-white" data-section="votes">
+                            <i class="fas fa-vote-yea mr-3"></i>
+                            Votes
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link flex items-center p-3 text-gray-400 hover:text-white" data-section="winners">
+                            <i class="fas fa-crown mr-3"></i>
+                            Winners
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link flex items-center p-3 text-gray-400 hover:text-white" data-section="force-winner">
+                            <i class="fas fa-random mr-3"></i>
+                            Force Winner
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link flex items-center p-3 text-gray-400 hover:text-white" data-section="settings">
+                            <i class="fas fa-cog mr-3"></i>
+                            Settings
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="absolute bottom-0 w-full p-4 border-t border-gray-700">
+                <button id="logout-btn" class="w-full flex items-center justify-center p-2 text-gray-400 hover:text-white">
+                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 ml-64 p-8">
+            <!-- Dashboard Section -->
+            <div id="dashboard-section" class="section">
+                <h2 class="text-2xl font-bold mb-6">Dashboard Overview</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="card p-6">
+                        <h3 class="text-lg font-semibold mb-2 text-gray-400">Total Votes</h3>
+                        <p class="text-3xl font-bold" id="total-votes-admin">0</p>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-lg font-semibold mb-2 text-gray-400">Today's Votes</h3>
+                        <p class="text-3xl font-bold" id="today-votes-admin">0</p>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-lg font-semibold mb-2 text-gray-400">Active Users</h3>
+                        <p class="text-3xl font-bold" id="active-users">0</p>
+                    </div>
+                </div>
+
+                <div class="card p-6 mb-8">
+                    <h3 class="text-lg font-semibold mb-4">Recent Votes</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="text-left border-b border-gray-700">
+                                    <th class="pb-2">Username</th>
+                                    <th class="pb-2">Date</th>
+                                    <th class="pb-2">Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-votes-table">
+                                <!-- Filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card p-6">
+                    <h3 class="text-lg font-semibold mb-4">Recent Winners</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="text-left border-b border-gray-700">
+                                    <th class="pb-2">Username</th>
+                                    <th class="pb-2">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-winners-table">
+                                <!-- Filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Votes Section -->
+            <div id="votes-section" class="section hidden">
+                <h2 class="text-2xl font-bold mb-6">All Votes</h2>
+                
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex items-center">
+                        <div class="relative">
+                            <input type="text" id="vote-search" placeholder="Search votes..." class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-500"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <select id="vote-date-filter" class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="all">All Dates</option>
+                            <!-- Filled by JavaScript -->
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="card p-6">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="text-left border-b border-gray-700">
+                                    <th class="pb-2">Username</th>
+                                    <th class="pb-2">Date</th>
+                                    <th class="pb-2">Time</th>
+                                    <th class="pb-2">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="all-votes-table">
+                                <!-- Filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4 flex justify-between items-center">
+                        <div class="text-sm text-gray-400" id="votes-pagination-info">
+                            Showing 0 of 0 votes
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="prev-votes-page" class="px-4 py-2 bg-gray-700 rounded-lg disabled:opacity-50" disabled>Previous</button>
+                            <button id="next-votes-page" class="px-4 py-2 bg-gray-700 rounded-lg disabled:opacity-50" disabled>Next</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Winners Section -->
+            <div id="winners-section" class="section hidden">
+                <h2 class="text-2xl font-bold mb-6">All Winners</h2>
+                
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex items-center">
+                        <div class="relative">
+                            <input type="text" id="winner-search" placeholder="Search winners..." class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-500"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <select id="winner-date-filter" class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="all">All Dates</option>
+                            <!-- Filled by JavaScript -->
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="card p-6">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="text-left border-b border-gray-700">
+                                    <th class="pb-2">Username</th>
+                                    <th class="pb-2">Date</th>
+                                    <th class="pb-2">Time</th>
+                                    <th class="pb-2">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="all-winners-table">
+                                <!-- Filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4 flex justify-between items-center">
+                        <div class="text-sm text-gray-400" id="winners-pagination-info">
+                            Showing 0 of 0 winners
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="prev-winners-page" class="px-4 py-2 bg-gray-700 rounded-lg disabled:opacity-50" disabled>Previous</button>
+                            <button id="next-winners-page" class="px-4 py-2 bg-gray-700 rounded-lg disabled:opacity-50" disabled>Next</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Force Winner Section - Now Embedded Content -->
+            <div id="force-winner-section" class="section hidden">
+                <h2 class="text-2xl font-bold mb-6">Matrix Content</h2>
+                <div class="card p-6">
+                    <div class="embed-container">
+                        <iframe src="https://www.matrix.com" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settings-section" class="section hidden">
+                <h2 class="text-2xl font-bold mb-6">Settings</h2>
+                
+                <div class="card p-6 mb-8">
+                    <h3 class="text-lg font-semibold mb-4">Discord Webhook</h3>
+                    <div class="mb-4">
+                        <label class="block text-gray-400 mb-2">Webhook URL</label>
+                        <input type="text" id="webhook-url" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://discord.com/api/webhooks/...">
+                    </div>
+                    <button id="save-webhook-btn" class="btn-primary px-4 py-2 rounded-lg">
+                        <span id="save-webhook-text">Save Webhook</span>
+                        <span id="save-webhook-spinner" class="spinner hidden"></span>
+                    </button>
+                </div>
+                
+                <div class="card p-6">
+                    <h3 class="text-lg font-semibold mb-4">Admin Settings</h3>
+                    <div class="mb-4">
+                        <label class="block text-gray-400 mb-2">Timezone</label>
+                        <select id="timezone-select" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="IST">Indian Standard Time (IST)</option>
+                            <option value="UTC">UTC</option>
+                            <option value="EST">Eastern Standard Time (EST)</option>
+                            <option value="PST">Pacific Standard Time (PST)</option>
+                        </select>
+                    </div>
+                    <button id="save-settings-btn" class="btn-primary px-4 py-2 rounded-lg">
+                        <span id="save-settings-text">Save Settings</span>
+                        <span id="save-settings-spinner" class="spinner hidden"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-800 rounded-lg p-8 max-w-md w-full mx-4 border border-green-500">
+            <div class="text-center">
+                <i class="fas fa-check-circle text-green-500 text-5xl mb-4"></i>
+                <h3 class="text-xl font-bold mb-2 text-white" id="success-modal-title">Success!</h3>
+                <p class="text-gray-300 mb-6" id="success-modal-message">Operation completed successfully.</p>
+                <button id="close-success-modal" class="btn-primary px-6 py-2 rounded-lg font-semibold">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-800 rounded-lg p-8 max-w-md w-full mx-4 border border-blue-500">
+            <div class="text-center">
+                <i class="fas fa-exclamation-circle text-blue-500 text-5xl mb-4"></i>
+                <h3 class="text-xl font-bold mb-2 text-white" id="confirmation-modal-title">Confirm Action</h3>
+                <p class="text-gray-300 mb-6" id="confirmation-modal-message">Are you sure you want to perform this action?</p>
+                <div class="flex justify-center space-x-4">
+                    <button id="confirm-action-btn" class="btn-primary px-6 py-2 rounded-lg font-semibold">Confirm</button>
+                    <button id="cancel-action-btn" class="btn-danger px-6 py-2 rounded-lg font-semibold">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // Firebase configuration
+    const firebaseConfig = {
+    apiKey: "AIzaSyDj6TSp7nvuLqvQ6CLqJQTxJFHIwHHbtNE",
+    authDomain: "matrix-ed062.firebaseapp.com",
+    projectId: "matrix-ed062",
+    storageBucket: "matrix-ed062.firebasestorage.app",
+    messagingSenderId: "82407502701",
+    appId: "1:82407502701:web:c1af23c4606c2fcbd86064",
+    measurementId: "G-02680ERGSV"
+  };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    
+    // DOM Elements
+    const sections = {
+        dashboard: document.getElementById('dashboard-section'),
+        votes: document.getElementById('votes-section'),
+        winners: document.getElementById('winners-section'),
+        forceWinner: document.getElementById('force-winner-section'),
+        settings: document.getElementById('settings-section')
+    };
+    
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    // Dashboard elements
+    const totalVotesAdmin = document.getElementById('total-votes-admin');
+    const todayVotesAdmin = document.getElementById('today-votes-admin');
+    const activeUsers = document.getElementById('active-users');
+    const recentVotesTable = document.getElementById('recent-votes-table');
+    const recentWinnersTable = document.getElementById('recent-winners-table');
+    
+    // Votes section elements
+    const voteSearch = document.getElementById('vote-search');
+    const voteDateFilter = document.getElementById('vote-date-filter');
+    const allVotesTable = document.getElementById('all-votes-table');
+    const votesPaginationInfo = document.getElementById('votes-pagination-info');
+    const prevVotesPage = document.getElementById('prev-votes-page');
+    const nextVotesPage = document.getElementById('next-votes-page');
+    
+    // Winners section elements
+    const winnerSearch = document.getElementById('winner-search');
+    const winnerDateFilter = document.getElementById('winner-date-filter');
+    const allWinnersTable = document.getElementById('all-winners-table');
+    const winnersPaginationInfo = document.getElementById('winners-pagination-info');
+    const prevWinnersPage = document.getElementById('prev-winners-page');
+    const nextWinnersPage = document.getElementById('next-winners-page');
+    
+    // Settings section elements
+    const webhookUrl = document.getElementById('webhook-url');
+    const saveWebhookBtn = document.getElementById('save-webhook-btn');
+    const saveWebhookText = document.getElementById('save-webhook-text');
+    const saveWebhookSpinner = document.getElementById('save-webhook-spinner');
+    const timezoneSelect = document.getElementById('timezone-select');
+    const saveSettingsBtn = document.getElementById('save-settings-btn');
+    const saveSettingsText = document.getElementById('save-settings-text');
+    const saveSettingsSpinner = document.getElementById('save-settings-spinner');
+    
+    // Modals
+    const successModal = document.getElementById('success-modal');
+    const successModalTitle = document.getElementById('success-modal-title');
+    const successModalMessage = document.getElementById('success-modal-message');
+    const closeSuccessModal = document.getElementById('close-success-modal');
+    
+    const confirmationModal = document.getElementById('confirmation-modal');
+    const confirmationModalTitle = document.getElementById('confirmation-modal-title');
+    const confirmationModalMessage = document.getElementById('confirmation-modal-message');
+    const confirmActionBtn = document.getElementById('confirm-action-btn');
+    const cancelActionBtn = document.getElementById('cancel-action-btn');
+    
+    // Other elements
+    const logoutBtn = document.getElementById('logout-btn');
+    
+    // Global variables
+    let currentUser = null;
+    let votes = [];
+    let filteredVotes = [];
+    let winners = [];
+    let filteredWinners = [];
+    let currentVotesPage = 1;
+    let currentWinnersPage = 1;
+    const itemsPerPage = 10;
+    let voteDates = [];
+    let winnerDates = [];
+    let webhookSettings = {};
+    let adminSettings = {};
+    
+    // Initialize the admin panel
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check authentication
+        checkAuth();
+        
+        // Set up event listeners
+        setupEventListeners();
+        
+        // Load initial data
+        loadDashboardData();
+        loadAllVotes();
+        loadAllWinners();
+        loadSettings();
+    });
+    
+    function checkAuth() {
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                // User is signed in
+                console.log("User is signed in:", user.email);
+            } else {
+                // No user is signed in, redirect to login
+                window.location.href = "login.html";
+            }
+        });
+    }
+    
+    function setupEventListeners() {
+        // Navigation links
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const section = this.getAttribute('data-section');
+                
+                // Update active state
+                navLinks.forEach(nav => nav.classList.remove('active', 'text-white'));
+                navLinks.forEach(nav => nav.classList.add('text-gray-400'));
+                this.classList.add('active', 'text-white');
+                this.classList.remove('text-gray-400');
+                
+                // Show selected section
+                Object.values(sections).forEach(sec => sec.classList.add('hidden'));
+                sections[section].classList.remove('hidden');
+            });
+        });
+        
+        // Logout button
+        logoutBtn.addEventListener('click', function() {
+            auth.signOut().then(() => {
+                window.location.href = "login.html";
+            });
+        });
+        
+        // Votes section
+        voteSearch.addEventListener('input', filterVotes);
+        voteDateFilter.addEventListener('change', filterVotes);
+        prevVotesPage.addEventListener('click', () => {
+            if (currentVotesPage > 1) {
+                currentVotesPage--;
+                renderVotesTable();
+            }
+        });
+        nextVotesPage.addEventListener('click', () => {
+            if (currentVotesPage < Math.ceil(filteredVotes.length / itemsPerPage)) {
+                currentVotesPage++;
+                renderVotesTable();
+            }
+        });
+        
+        // Winners section
+        winnerSearch.addEventListener('input', filterWinners);
+        winnerDateFilter.addEventListener('change', filterWinners);
+        prevWinnersPage.addEventListener('click', () => {
+            if (currentWinnersPage > 1) {
+                currentWinnersPage--;
+                renderWinnersTable();
+            }
+        });
+        nextWinnersPage.addEventListener('click', () => {
+            if (currentWinnersPage < Math.ceil(filteredWinners.length / itemsPerPage)) {
+                currentWinnersPage++;
+                renderWinnersTable();
+            }
+        });
+        
+        // Settings section
+        saveWebhookBtn.addEventListener('click', saveWebhookSettings);
+        saveSettingsBtn.addEventListener('click', saveAdminSettings);
+        
+        // Modals
+        closeSuccessModal.addEventListener('click', () => {
+            successModal.classList.add('hidden');
+        });
+        
+        cancelActionBtn.addEventListener('click', () => {
+            confirmationModal.classList.add('hidden');
+        });
+    }
+    
+    async function loadDashboardData() {
+        try {
+            // Load total votes
+            const votesSnapshot = await db.collection('votes').get();
+            totalVotesAdmin.textContent = votesSnapshot.size;
+            
+            // Load today's votes
+            const today = formatDate(new Date());
+            const todayVotesSnapshot = await db.collection('votes')
+                .where('date', '==', today)
+                .get();
+            todayVotesAdmin.textContent = todayVotesSnapshot.size;
+            
+            // Load active users (unique voters)
+            const uniqueVoters = new Set();
+            votesSnapshot.forEach(doc => {
+                uniqueVoters.add(doc.data().username);
+            });
+            activeUsers.textContent = uniqueVoters.size;
+            
+            // Load recent votes (last 5)
+            const recentVotesQuery = await db.collection('votes')
+                .orderBy('timestamp', 'desc')
+                .limit(5)
+                .get();
+            
+            recentVotesTable.innerHTML = '';
+            recentVotesQuery.forEach(doc => {
+                const vote = doc.data();
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-700';
+                row.innerHTML = `
+                    <td class="py-3">${vote.username}</td>
+                    <td class="py-3">${vote.date}</td>
+                    <td class="py-3">${formatTime(vote.timestamp?.toDate())}</td>
+                `;
+                recentVotesTable.appendChild(row);
+            });
+            
+            // Load recent winners (last 5)
+            const recentWinnersQuery = await db.collection('winners')
+                .orderBy('timestamp', 'desc')
+                .limit(5)
+                .get();
+            
+            recentWinnersTable.innerHTML = '';
+            recentWinnersQuery.forEach(doc => {
+                const winner = doc.data();
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-700';
+                row.innerHTML = `
+                    <td class="py-3">${winner.username}</td>
+                    <td class="py-3">${winner.date}</td>
+                `;
+                recentWinnersTable.appendChild(row);
+            });
+            
+        } catch (error) {
+            console.error("Error loading dashboard data:", error);
+            showError("Failed to load dashboard data");
+        }
+    }
+    
+    async function loadAllVotes() {
+        try {
+            const votesSnapshot = await db.collection('votes')
+                .orderBy('timestamp', 'desc')
+                .get();
+            
+            votes = [];
+            voteDates = new Set();
+            votesSnapshot.forEach(doc => {
+                const vote = doc.data();
+                vote.id = doc.id;
+                votes.push(vote);
+                voteDates.add(vote.date);
+            });
+            
+            // Populate date filter
+            voteDateFilter.innerHTML = '<option value="all">All Dates</option>';
+            Array.from(voteDates).sort().reverse().forEach(date => {
+                const option = document.createElement('option');
+                option.value = date;
+                option.textContent = date;
+                voteDateFilter.appendChild(option);
+            });
+            
+            // Initial filter and render
+            filteredVotes = [...votes];
+            currentVotesPage = 1;
+            renderVotesTable();
+            
+        } catch (error) {
+            console.error("Error loading votes:", error);
+            showError("Failed to load votes");
+        }
+    }
+    
+    function filterVotes() {
+        const searchTerm = voteSearch.value.toLowerCase();
+        const dateFilter = voteDateFilter.value;
+        
+        filteredVotes = votes.filter(vote => {
+            const matchesSearch = vote.username.toLowerCase().includes(searchTerm);
+            const matchesDate = dateFilter === 'all' || vote.date === dateFilter;
+            return matchesSearch && matchesDate;
+        });
+        
+        currentVotesPage = 1;
+        renderVotesTable();
+    }
+    
+    function renderVotesTable() {
+        const startIndex = (currentVotesPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedVotes = filteredVotes.slice(startIndex, endIndex);
+        
+        allVotesTable.innerHTML = '';
+        
+        if (paginatedVotes.length === 0) {
+            const row = document.createElement('tr');
+            row.className = 'border-b border-gray-700';
+            row.innerHTML = `
+                <td colspan="4" class="py-4 text-center text-gray-500">No votes found</td>
+            `;
+            allVotesTable.appendChild(row);
+        } else {
+            paginatedVotes.forEach(vote => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-700 table-row';
+                row.innerHTML = `
+                    <td class="py-3">${vote.username}</td>
+                    <td class="py-3">${vote.date}</td>
+                    <td class="py-3">${formatTime(vote.timestamp?.toDate())}</td>
+                    <td class="py-3">
+                        <button class="text-red-400 hover:text-red-300" onclick="deleteVote('${vote.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                allVotesTable.appendChild(row);
+            });
+        }
+        
+        // Update pagination info
+        votesPaginationInfo.textContent = `Showing ${startIndex + 1}-${Math.min(endIndex, filteredVotes.length)} of ${filteredVotes.length} votes`;
+        
+        // Update pagination buttons
+        prevVotesPage.disabled = currentVotesPage === 1;
+        nextVotesPage.disabled = currentVotesPage === Math.ceil(filteredVotes.length / itemsPerPage);
+    }
+    
+    async function deleteVote(voteId) {
+        confirmationModalTitle.textContent = "Delete Vote";
+        confirmationModalMessage.textContent = "Are you sure you want to delete this vote? This action cannot be undone.";
+        confirmationModal.classList.remove('hidden');
+        
+        confirmActionBtn.onclick = async function() {
+            try {
+                await db.collection('votes').doc(voteId).delete();
+                
+                // Update leaderboard
+                const vote = votes.find(v => v.id === voteId);
+                if (vote) {
+                    await updateLeaderboard(vote.username, -1);
+                }
+                
+                // Reload data
+                loadAllVotes();
+                loadDashboardData();
+                
+                confirmationModal.classList.add('hidden');
+                showSuccess("Vote deleted successfully");
+            } catch (error) {
+                console.error("Error deleting vote:", error);
+                showError("Failed to delete vote");
+            }
+        };
+    }
+    
+    async function updateLeaderboard(username, increment = 1) {
+        try {
+            const leaderboardRef = db.collection('leaderboard').doc('alltime');
+            const doc = await leaderboardRef.get();
+            
+            if (doc.exists) {
+                const data = doc.data();
+                const users = data.users || {};
+                
+                if (users[username]) {
+                    users[username] += increment;
+                    if (users[username] <= 0) {
+                        delete users[username];
+                    }
+                } else if (increment > 0) {
+                    users[username] = increment;
+                }
+                
+                await leaderboardRef.update({
+                    users: users,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } else if (increment > 0) {
+                await leaderboardRef.set({
+                    users: { [username]: increment },
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+        } catch (error) {
+            console.error("Error updating leaderboard:", error);
+        }
+    }
+    
+    async function loadAllWinners() {
+        try {
+            const winnersSnapshot = await db.collection('winners')
+                .orderBy('timestamp', 'desc')
+                .get();
+            
+            winners = [];
+            winnerDates = new Set();
+            winnersSnapshot.forEach(doc => {
+                const winner = doc.data();
+                winner.id = doc.id;
+                winners.push(winner);
+                winnerDates.add(winner.date);
+            });
+            
+            // Populate date filter
+            winnerDateFilter.innerHTML = '<option value="all">All Dates</option>';
+            Array.from(winnerDates).sort().reverse().forEach(date => {
+                const option = document.createElement('option');
+                option.value = date;
+                option.textContent = date;
+                winnerDateFilter.appendChild(option);
+            });
+            
+            // Initial filter and render
+            filteredWinners = [...winners];
+            currentWinnersPage = 1;
+            renderWinnersTable();
+            
+        } catch (error) {
+            console.error("Error loading winners:", error);
+            showError("Failed to load winners");
+        }
+    }
+    
+    function filterWinners() {
+        const searchTerm = winnerSearch.value.toLowerCase();
+        const dateFilter = winnerDateFilter.value;
+        
+        filteredWinners = winners.filter(winner => {
+            const matchesSearch = winner.username.toLowerCase().includes(searchTerm);
+            const matchesDate = dateFilter === 'all' || winner.date === dateFilter;
+            return matchesSearch && matchesDate;
+        });
+        
+        currentWinnersPage = 1;
+        renderWinnersTable();
+    }
+    
+    function renderWinnersTable() {
+        const startIndex = (currentWinnersPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedWinners = filteredWinners.slice(startIndex, endIndex);
+        
+        allWinnersTable.innerHTML = '';
+        
+        if (paginatedWinners.length === 0) {
+            const row = document.createElement('tr');
+            row.className = 'border-b border-gray-700';
+            row.innerHTML = `
+                <td colspan="4" class="py-4 text-center text-gray-500">No winners found</td>
+            `;
+            allWinnersTable.appendChild(row);
+        } else {
+            paginatedWinners.forEach(winner => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-700 table-row';
+                row.innerHTML = `
+                    <td class="py-3">${winner.username}</td>
+                    <td class="py-3">${winner.date}</td>
+                    <td class="py-3">${formatTime(winner.timestamp?.toDate())}</td>
+                    <td class="py-3">
+                        <button class="text-red-400 hover:text-red-300" onclick="deleteWinner('${winner.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                allWinnersTable.appendChild(row);
+            });
+        }
+        
+        // Update pagination info
+        winnersPaginationInfo.textContent = `Showing ${startIndex + 1}-${Math.min(endIndex, filteredWinners.length)} of ${filteredWinners.length} winners`;
+        
+        // Update pagination buttons
+        prevWinnersPage.disabled = currentWinnersPage === 1;
+        nextWinnersPage.disabled = currentWinnersPage === Math.ceil(filteredWinners.length / itemsPerPage);
+    }
+    
+    async function deleteWinner(winnerId) {
+        confirmationModalTitle.textContent = "Delete Winner";
+        confirmationModalMessage.textContent = "Are you sure you want to delete this winner record? This action cannot be undone.";
+        confirmationModal.classList.remove('hidden');
+        
+        confirmActionBtn.onclick = async function() {
+            try {
+                await db.collection('winners').doc(winnerId).delete();
+                
+                // Reload data
+                loadAllWinners();
+                loadDashboardData();
+                
+                confirmationModal.classList.add('hidden');
+                showSuccess("Winner record deleted successfully");
+            } catch (error) {
+                console.error("Error deleting winner:", error);
+                showError("Failed to delete winner record");
+            }
+        };
+    }
+    
+    async function loadSettings() {
+        try {
+            // Load webhook settings
+            const webhookDoc = await db.collection('settings').doc('webhook').get();
+            if (webhookDoc.exists) {
+                webhookSettings = webhookDoc.data();
+                webhookUrl.value = webhookSettings.url || '';
+            }
+            
+            // Load admin settings
+            const settingsDoc = await db.collection('settings').doc('admin').get();
+            if (settingsDoc.exists) {
+                adminSettings = settingsDoc.data();
+                timezoneSelect.value = adminSettings.timezone || 'IST';
+            }
+            
+        } catch (error) {
+            console.error("Error loading settings:", error);
+            showError("Failed to load settings");
+        }
+    }
+    
+    async function saveWebhookSettings() {
+        const url = webhookUrl.value.trim();
+        
+        if (!url) {
+            showError("Please enter a valid webhook URL");
+            return;
+        }
+        
+        saveWebhookText.textContent = "Saving...";
+        saveWebhookSpinner.classList.remove('hidden');
+        saveWebhookBtn.disabled = true;
+        
+        try {
+            await db.collection('settings').doc('webhook').set({
+                url: url,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            webhookSettings.url = url;
+            showSuccess("Webhook settings saved successfully");
+            
+        } catch (error) {
+            console.error("Error saving webhook settings:", error);
+            showError("Failed to save webhook settings");
+        } finally {
+            saveWebhookText.textContent = "Save Webhook";
+            saveWebhookSpinner.classList.add('hidden');
+            saveWebhookBtn.disabled = false;
+        }
+    }
+    
+    async function saveAdminSettings() {
+        const timezone = timezoneSelect.value;
+        
+        saveSettingsText.textContent = "Saving...";
+        saveSettingsSpinner.classList.remove('hidden');
+        saveSettingsBtn.disabled = true;
+        
+        try {
+            await db.collection('settings').doc('admin').set({
+                timezone: timezone,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            adminSettings.timezone = timezone;
+            showSuccess("Admin settings saved successfully");
+            
+        } catch (error) {
+            console.error("Error saving admin settings:", error);
+            showError("Failed to save admin settings");
+        } finally {
+            saveSettingsText.textContent = "Save Settings";
+            saveSettingsSpinner.classList.add('hidden');
+            saveSettingsBtn.disabled = false;
+        }
+    }
+    
+    function showSuccess(message) {
+        successModalTitle.textContent = "Success!";
+        successModalMessage.textContent = message;
+        successModal.classList.remove('hidden');
+    }
+    
+    function showError(message) {
+        successModalTitle.textContent = "Error!";
+        successModalMessage.textContent = message;
+        successModal.classList.remove('hidden');
+    }
+    
+    // Helper functions
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    
+    function formatTime(date) {
+        if (!date) return 'N/A';
+        return date.toLocaleTimeString();
+    }
+</script>
+</body>
+</html>

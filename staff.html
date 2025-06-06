@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MATRIX MC | Staff Applications</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Oxanium', sans-serif;
+            scroll-behavior: smooth;
+            background-color: #0a0a0a;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+        
+        .minecraft-bg {
+            background-image: url('https://images.unsplash.com/photo-1585771724684-38270d0d4a5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        
+        .section {
+            min-height: 100vh;
+            padding: 6rem 2rem;
+            position: relative;
+        }
+        
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(10,10,10,0.8) 0%, rgba(10,10,10,0.95) 100%);
+            z-index: -1;
+        }
+        
+        .glow-text {
+            text-shadow: 0 0 10px rgba(74, 222, 128, 0.7);
+        }
+        
+        .glow-box {
+            box-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .glow-box:hover {
+            box-shadow: 0 0 30px rgba(74, 222, 128, 0.5);
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background-color: #4ade80;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(74, 222, 128, 0.3);
+        }
+        
+        .application-card {
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(74, 222, 128, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .application-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(74, 222, 128, 0.5);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 1s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .scroll-down {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #4ade80;
+            font-size: 2rem;
+            animation: bounce 2s infinite;
+            cursor: pointer;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0) translateX(-50%); }
+            40% { transform: translateY(-20px) translateX(-50%); }
+            60% { transform: translateY(-10px) translateX(-50%); }
+        }
+        
+        /* Position color badges */
+        .position-badge {
+            transition: all 0.3s ease;
+        }
+        
+        .position-badge:hover {
+            transform: scale(1.05);
+        }
+        
+        .position-badge.admin {
+            background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+        }
+        
+        .position-badge.moderator {
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+        }
+        
+        .position-badge.developer {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        }
+        
+        .position-badge.builder {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        
+        .position-badge.support {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            display: none;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Success message */
+        .success-message {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(20, 20, 20, 0.95);
+            border: 2px solid #4ade80;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            z-index: 1000;
+            max-width: 90%;
+            width: 500px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(74, 222, 128, 0.5);
+        }
+        
+        /* Error message */
+        .error-message {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(20, 20, 20, 0.95);
+            border: 2px solid #ef4444;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            z-index: 1000;
+            max-width: 90%;
+            width: 500px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.5);
+        }
+        
+        @media (max-width: 768px) {
+            .section {
+                padding: 5rem 1rem;
+                min-height: auto;
+            }
+            
+            .application-card {
+                padding: 1.5rem;
+            }
+            
+            .text-6xl {
+                font-size: 3rem;
+            }
+            
+            .text-4xl {
+                font-size: 2rem;
+            }
+            
+            .grid-cols-1 {
+                grid-template-columns: 1fr;
+            }
+            
+            .grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .grid-cols-3 {
+                grid-template-columns: 1fr;
+            }
+            
+            .success-message, .error-message {
+                width: 90%;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="text-gray-200">
+    <!-- Header -->
+    <header class="fixed w-full bg-black bg-opacity-90 z-50 border-b border-gray-800">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="text-2xl font-bold text-green-500 glow-text">
+                    MATRIX<span class="text-white">MC</span>
+                </div>
+                
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#home" class="nav-link text-sm uppercase tracking-wider hover:text-green-400">Home</a>
+                    <a href="#application" class="nav-link text-sm uppercase tracking-wider hover:text-green-400">Apply</a>
+                </nav>
+                
+                <div class="md:hidden">
+                    <button id="menu-toggle" class="text-gray-300 hover:text-green-400 focus:outline-none">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile menu -->
+            <div id="mobile-menu" class="hidden md:hidden mt-4 pb-2">
+                <div class="flex flex-col space-y-3">
+                    <a href="#home" class="nav-link text-sm uppercase tracking-wider hover:text-green-400">Home</a>
+                    <a href="#application" class="nav-link text-sm uppercase tracking-wider hover:text-green-400">Apply</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="section minecraft-bg flex items-center justify-center">
+        <div class="container mx-auto px-4 text-center">
+            <div class="floating">
+                <h1 class="text-4xl md:text-6xl font-bold mb-6 text-white glow-text">
+                    <span class="text-green-500">MATRIX</span> STAFF TEAM
+                </h1>
+            </div>
+            <p class="text-xl md:text-2xl mb-8 text-gray-300 max-w-3xl mx-auto fade-in">
+                Join our dedicated team and help shape the future of our Minecraft community
+            </p>
+            
+            <div class="scroll-down" onclick="scrollToSection('application')">
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- Application Section -->
+    <section id="application" class="section bg-gradient-to-b from-black to-gray-900">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-white">
+                    STAFF <span class="text-green-500">APPLICATION</span>
+                </h2>
+                <div class="w-24 h-1 bg-green-500 mx-auto"></div>
+            </div>
+            
+            <div class="max-w-4xl mx-auto">
+                <div class="application-card p-8 rounded-lg">
+                    <form id="application-form">
+                        <!-- Personal Information -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold mb-4 text-green-400">PERSONAL INFORMATION</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="full-name" class="block text-sm font-medium mb-2">Full Name *</label>
+                                    <input type="text" id="full-name" name="full-name" required 
+                                        class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                </div>
+                                <div>
+                                    <label for="email" class="block text-sm font-medium mb-2">Email *</label>
+                                    <input type="email" id="email" name="email" required
+                                        class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                </div>
+                                <div>
+                                    <label for="phone" class="block text-sm font-medium mb-2">Phone Number (Optional)</label>
+                                    <input type="tel" id="phone" name="phone" 
+                                        class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                </div>
+                                <div>
+                                    <label for="age" class="block text-sm font-medium mb-2">Age *</label>
+                                    <input type="number" id="age" name="age" min="13" max="99" required
+                                        class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Minecraft Information -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold mb-4 text-green-400">MINECRAFT INFORMATION</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="mc-username" class="block text-sm font-medium mb-2">Minecraft Username *</label>
+                                    <input type="text" id="mc-username" name="mc-username" required 
+                                        class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                </div>
+                                <div>
+                                    <label for="mc-playtime" class="block text-sm font-medium mb-2">How long have you played on our server? *</label>
+                                    <select id="mc-playtime" name="mc-playtime" required
+                                        class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                        <option value="">Select duration</option>
+                                        <option value="Less than 1 week">Less than 1 week</option>
+                                        <option value="1-4 weeks">1-4 weeks</option>
+                                        <option value="1-3 months">1-3 months</option>
+                                        <option value="3-6 months">3-6 months</option>
+                                        <option value="6+ months">6+ months</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Position Selection -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold mb-4 text-green-400">POSITION APPLYING FOR *</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <input type="radio" id="position-admin" name="position" value="Admin" class="hidden peer" required>
+                                    <label for="position-admin" class="flex flex-col items-center justify-center p-4 bg-gray-800 border border-gray-700 rounded-lg cursor-pointer peer-checked:border-red-500 peer-checked:bg-gray-700 hover:bg-gray-700 transition">
+                                        <div class="position-badge admin px-4 py-1 rounded-full text-white text-sm font-bold mb-2">ADMIN</div>
+                                        <span class="text-xs text-center">Server management and leadership</span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="position-moderator" name="position" value="Moderator" class="hidden peer">
+                                    <label for="position-moderator" class="flex flex-col items-center justify-center p-4 bg-gray-800 border border-gray-700 rounded-lg cursor-pointer peer-checked:border-blue-500 peer-checked:bg-gray-700 hover:bg-gray-700 transition">
+                                        <div class="position-badge moderator px-4 py-1 rounded-full text-white text-sm font-bold mb-2">MODERATOR</div>
+                                        <span class="text-xs text-center">Player support and rule enforcement</span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="position-developer" name="position" value="Developer" class="hidden peer">
+                                    <label for="position-developer" class="flex flex-col items-center justify-center p-4 bg-gray-800 border border-gray-700 rounded-lg cursor-pointer peer-checked:border-purple-500 peer-checked:bg-gray-700 hover:bg-gray-700 transition">
+                                        <div class="position-badge developer px-4 py-1 rounded-full text-white text-sm font-bold mb-2">DEVELOPER</div>
+                                        <span class="text-xs text-center">Plugin development and maintenance</span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="position-builder" name="position" value="Builder" class="hidden peer">
+                                    <label for="position-builder" class="flex flex-col items-center justify-center p-4 bg-gray-800 border border-gray-700 rounded-lg cursor-pointer peer-checked:border-yellow-500 peer-checked:bg-gray-700 hover:bg-gray-700 transition">
+                                        <div class="position-badge builder px-4 py-1 rounded-full text-white text-sm font-bold mb-2">BUILDER</div>
+                                        <span class="text-xs text-center">World building and design</span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="position-support" name="position" value="Support" class="hidden peer">
+                                    <label for="position-support" class="flex flex-col items-center justify-center p-4 bg-gray-800 border border-gray-700 rounded-lg cursor-pointer peer-checked:border-green-500 peer-checked:bg-gray-700 hover:bg-gray-700 transition">
+                                        <div class="position-badge support px-4 py-1 rounded-full text-white text-sm font-bold mb-2">SUPPORT</div>
+                                        <span class="text-xs text-center">Helping players with issues</span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="position-other" name="position" value="Other" class="hidden peer">
+                                    <label for="position-other" class="flex flex-col items-center justify-center p-4 bg-gray-800 border border-gray-700 rounded-lg cursor-pointer peer-checked:border-gray-500 peer-checked:bg-gray-700 hover:bg-gray-700 transition">
+                                        <div class="px-4 py-1 rounded-full text-white text-sm font-bold mb-2 bg-gray-600">OTHER</div>
+                                        <span class="text-xs text-center">Other staff position</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Experience Section -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold mb-4 text-green-400">EXPERIENCE & QUALIFICATIONS</h3>
+                            
+                            <div class="mb-6">
+                                <label for="previous-experience" class="block text-sm font-medium mb-2">Previous Staff Experience *</label>
+                                <textarea id="previous-experience" name="previous-experience" rows="3" required
+                                    class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    placeholder="List any previous staff positions you've held (server names, positions, duration)"></textarea>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <label for="why-join" class="block text-sm font-medium mb-2">Why do you want to join our staff team? *</label>
+                                <textarea id="why-join" name="why-join" rows="3" required
+                                    class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    placeholder="Explain why you want to be part of our team"></textarea>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <label for="strengths" class="block text-sm font-medium mb-2">What strengths would you bring to the team? *</label>
+                                <textarea id="strengths" name="strengths" rows="3" required
+                                    class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    placeholder="Describe your relevant skills and qualities"></textarea>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <label for="availability" class="block text-sm font-medium mb-2">Availability (Hours per week) *</label>
+                                <input type="text" id="availability" name="availability" required
+                                    class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    placeholder="e.g., 10-15 hours per week, mostly evenings">
+                            </div>
+                        </div>
+                        
+                        <!-- Developer Specific Questions (Hidden by default) -->
+                        <div class="mb-8 hidden" id="developer-questions">
+                            <h3 class="text-xl font-semibold mb-4 text-purple-400">DEVELOPER QUESTIONS</h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label for="programming-languages" class="block text-sm font-medium mb-2">Programming Languages *</label>
+                                    <input type="text" id="programming-languages" name="programming-languages"
+                                        class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                        placeholder="Java, JavaScript, Python, etc.">
+                                </div>
+                                <div>
+                                    <label for="minecraft-experience" class="block text-sm font-medium mb-2">Minecraft Development Experience *</label>
+                                    <select id="minecraft-experience" name="minecraft-experience"
+                                        class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                        <option value="">Select experience level</option>
+                                        <option value="Beginner">Beginner (just starting)</option>
+                                        <option value="Intermediate">Intermediate (some plugins)</option>
+                                        <option value="Advanced">Advanced (multiple complex plugins)</option>
+                                        <option value="Expert">Expert (professional experience)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <label for="plugin-portfolio" class="block text-sm font-medium mb-2">Plugin Portfolio (Links) *</label>
+                                <textarea id="plugin-portfolio" name="plugin-portfolio" rows="2"
+                                    class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    placeholder="Links to plugins you've developed (GitHub, Spigot, etc.)"></textarea>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <label for="github-profile" class="block text-sm font-medium mb-2">GitHub Profile (Optional)</label>
+                                <input type="text" id="github-profile" name="github-profile"
+                                    class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    placeholder="https://github.com/yourusername">
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Information -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold mb-4 text-green-400">ADDITIONAL INFORMATION</h3>
+                            
+                            <div class="mb-6">
+                                <label for="additional-info" class="block text-sm font-medium mb-2">Anything else you'd like to share?</label>
+                                <textarea id="additional-info" name="additional-info" rows="3"
+                                    class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    placeholder="Additional information that might help your application"></textarea>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <input type="checkbox" id="agree-terms" name="agree-terms" required
+                                    class="w-4 h-4 text-green-600 bg-gray-700 border-gray-600 rounded focus:ring-green-500">
+                                <label for="agree-terms" class="ml-2 text-sm font-medium text-gray-300">
+                                    I certify that all information provided is accurate and agree to the <a href="#" class="text-green-500 hover:underline">terms of application</a> *
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="text-center mt-8">
+                            <button type="submit" id="submit-btn" class="btn-primary px-8 py-4 rounded-lg text-lg font-semibold text-white pulse">
+                                <i class="fas fa-paper-plane mr-2"></i> 
+                                <span id="submit-text">SUBMIT APPLICATION</span>
+                                <span id="submit-spinner" class="spinner"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Success Message -->
+    <div id="success-message" class="success-message">
+        <div class="text-green-500 text-4xl mb-4">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-white mb-2">Application Submitted!</h3>
+        <p class="text-gray-300 mb-6">Thank you for your application. We will review it and get back to you soon.</p>
+        <button onclick="hideSuccessMessage()" class="px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white font-medium transition">
+            Close
+        </button>
+    </div>
+
+    <!-- Error Message -->
+    <div id="error-message" class="error-message">
+        <div class="text-red-500 text-4xl mb-4">
+            <i class="fas fa-exclamation-circle"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-white mb-2">Submission Error</h3>
+        <p class="text-gray-300 mb-6" id="error-text">There was an error submitting your application. Please try again.</p>
+        <button onclick="hideErrorMessage()" class="px-6 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white font-medium transition">
+            Close
+        </button>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-black py-12 border-t border-gray-800">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold text-green-500 mb-4">MATRIX MC</h3>
+                    <p class="text-gray-500 text-sm">
+                        Building an amazing Minecraft community with dedicated staff members.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4 text-gray-300">QUICK LINKS</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#home" class="text-gray-500 hover:text-green-400 transition text-sm">Home</a></li>
+                        <li><a href="#application" class="text-gray-500 hover:text-green-400 transition text-sm">Application</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4 text-gray-300">CONNECT</h4>
+                    <ul class="space-y-2">
+                        <li><a href="https://discord.gg/b6hgMtU5ay" class="text-gray-500 hover:text-green-400 transition text-sm"><i class="fab fa-discord mr-2"></i> Discord</a></li>
+                        <li><a href="#" class="text-gray-500 hover:text-green-400 transition text-sm"><i class="fab fa-youtube mr-2"></i> YouTube</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center">
+                <p class="text-gray-600 text-sm">
+                    &copy; 2025 MATRIX MC. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Webhook URL
+        const WEBHOOK_URL = 'https://discord.com/api/webhooks/1380561491589201981/kvq7U872r17dPmQw1RlIyQ3wOYIwiTfdlg_VoBieI1ngXvZ0RCaOg85NbDkq_ThzWaph';
+
+        // Form submission handler
+        document.getElementById('application-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Validate form
+            if (!validateForm()) {
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = document.getElementById('submit-btn');
+            const submitText = document.getElementById('submit-text');
+            const submitSpinner = document.getElementById('submit-spinner');
+            
+            submitBtn.disabled = true;
+            submitText.textContent = 'PROCESSING...';
+            submitSpinner.style.display = 'inline-block';
+            
+            try {
+                // Get form values
+                const formData = new FormData(e.target);
+                const data = Object.fromEntries(formData.entries());
+                
+                // Determine embed color based on position
+                let embedColor;
+                switch(data.position.toLowerCase()) {
+                    case 'admin':
+                        embedColor = 0xef4444; // Red
+                        break;
+                    case 'moderator':
+                        embedColor = 0x3b82f6; // Blue
+                        break;
+                    case 'developer':
+                        embedColor = 0x7c3aed; // Purple
+                        break;
+                    case 'builder':
+                        embedColor = 0xd97706; // Yellow
+                        break;
+                    case 'support':
+                        embedColor = 0x059669; // Green
+                        break;
+                    default:
+                        embedColor = 0x6b7280; // Gray
+                }
+                
+                // Format Discord embed
+                const embed = {
+                    title: `New Staff Application - ${data.position}`,
+                    color: embedColor,
+                    fields: [
+                        {
+                            name: "Applicant Information",
+                            value: `**Name:** ${data['full-name']}\n**Age:** ${data.age}\n**Email:** ${data.email}\n**Phone:** ${data.phone || 'Not provided'}`,
+                            inline: false
+                        },
+                        {
+                            name: "Minecraft Information",
+                            value: `**Username:** ${data['mc-username']}\n**Playtime:** ${data['mc-playtime']}`,
+                            inline: false
+                        },
+                        {
+                            name: "Position Applying For",
+                            value: data.position,
+                            inline: true
+                        },
+                        {
+                            name: "Availability",
+                            value: data.availability || 'Not specified',
+                            inline: true
+                        },
+                        {
+                            name: "Previous Experience",
+                            value: data['previous-experience'] || 'None provided',
+                            inline: false
+                        },
+                        {
+                            name: "Why Join Our Team",
+                            value: data['why-join'] || 'Not provided',
+                            inline: false
+                        },
+                        {
+                            name: "Strengths",
+                            value: data.strengths || 'Not provided',
+                            inline: false
+                        }
+                    ],
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Add developer-specific fields if applicable
+                if (data.position.toLowerCase() === 'developer') {
+                    embed.fields.push(
+                        {
+                            name: "Programming Languages",
+                            value: data['programming-languages'] || 'Not specified',
+                            inline: true
+                        },
+                        {
+                            name: "Minecraft Experience",
+                            value: data['minecraft-experience'] || 'Not specified',
+                            inline: true
+                        },
+                        {
+                            name: "Plugin Portfolio",
+                            value: data['plugin-portfolio'] || 'None provided',
+                            inline: false
+                        }
+                    );
+                    
+                    if (data['github-profile']) {
+                        embed.fields.push({
+                            name: "GitHub Profile",
+                            value: data['github-profile'],
+                            inline: false
+                        });
+                    }
+                }
+                
+                // Add additional info if provided
+                if (data['additional-info']) {
+                    embed.fields.push({
+                        name: "Additional Information",
+                        value: data['additional-info'],
+                        inline: false
+                    });
+                }
+                
+                // Send to Discord webhook
+                await sendToDiscord(embed);
+                
+                // Show success message
+                showSuccessMessage();
+                
+                // Reset form
+                e.target.reset();
+                
+            } catch (error) {
+                console.error('Error submitting application:', error);
+                showErrorMessage('There was an error submitting your application. Please try again.');
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                submitText.textContent = 'SUBMIT APPLICATION';
+                submitSpinner.style.display = 'none';
+            }
+        });
+
+        // Function to validate form
+        function validateForm() {
+            const form = document.getElementById('application-form');
+            const requiredFields = form.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('border-red-500');
+                    isValid = false;
+                } else {
+                    field.classList.remove('border-red-500');
+                }
+            });
+            
+            // Special check for position
+            const positionSelected = form.querySelector('input[name="position"]:checked');
+            if (!positionSelected) {
+                const positionContainer = document.querySelector('.position-badge').parentElement.parentElement;
+                positionContainer.classList.add('border-red-500');
+                isValid = false;
+            } else {
+                const positionContainer = document.querySelector('.position-badge').parentElement.parentElement;
+                positionContainer.classList.remove('border-red-500');
+            }
+            
+            // Special check for developer questions if position is developer
+            if (positionSelected && positionSelected.value.toLowerCase() === 'developer') {
+                const devQuestions = ['programming-languages', 'minecraft-experience', 'plugin-portfolio'];
+                devQuestions.forEach(id => {
+                    const field = document.getElementById(id);
+                    if (!field.value.trim()) {
+                        field.classList.add('border-red-500');
+                        isValid = false;
+                    } else {
+                        field.classList.remove('border-red-500');
+                    }
+                });
+            }
+            
+            if (!isValid) {
+                showErrorMessage('Please fill in all required fields marked with *');
+                scrollToSection('application');
+            }
+            
+            return isValid;
+        }
+
+        // Function to send data to Discord webhook
+        async function sendToDiscord(embed) {
+            const response = await fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    embeds: [embed],
+                    username: "MATRIX MC Staff Applications",
+                    avatar_url: "https://i.imgur.com/JQ9HRd3.png"
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to send to Discord');
+            }
+        }
+
+        // Show success message
+        function showSuccessMessage() {
+            const successMessage = document.getElementById('success-message');
+            successMessage.style.display = 'block';
+        }
+
+        // Hide success message
+        function hideSuccessMessage() {
+            const successMessage = document.getElementById('success-message');
+            successMessage.style.display = 'none';
+        }
+
+        // Show error message
+        function showErrorMessage(message) {
+            const errorMessage = document.getElementById('error-message');
+            const errorText = document.getElementById('error-text');
+            
+            errorText.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        // Hide error message
+        function hideErrorMessage() {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.style.display = 'none';
+        }
+
+        // Mobile menu toggle
+        document.getElementById('menu-toggle').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Close mobile menu if open
+                    const mobileMenu = document.getElementById('mobile-menu');
+                    if (!mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                    }
+                }
+            });
+        });
+
+        // Scroll to section function
+        window.scrollToSection = function(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                window.scrollTo({
+                    top: section.offsetTop - 80,
+                    behavior: 'smooth'
+                });
+            }
+        };
+
+        // Show/hide developer questions based on position selection
+        const positionRadios = document.querySelectorAll('input[name="position"]');
+        const developerQuestions = document.getElementById('developer-questions');
+        
+        positionRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'Developer') {
+                    developerQuestions.classList.remove('hidden');
+                    
+                    // Make developer fields required
+                    document.getElementById('programming-languages').required = true;
+                    document.getElementById('minecraft-experience').required = true;
+                    document.getElementById('plugin-portfolio').required = true;
+                } else {
+                    developerQuestions.classList.add('hidden');
+                    
+                    // Make developer fields not required
+                    document.getElementById('programming-languages').required = false;
+                    document.getElementById('minecraft-experience').required = false;
+                    document.getElementById('plugin-portfolio').required = false;
+                }
+            });
+        });
+
+        // Add animation class when elements come into view
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.application-card, .section h2, .section h3').forEach(element => {
+            observer.observe(element);
+        });
+
+        // Close messages when clicking outside
+        window.addEventListener('click', function(e) {
+            const successMessage = document.getElementById('success-message');
+            const errorMessage = document.getElementById('error-message');
+            
+            if (successMessage.style.display === 'block' && !successMessage.contains(e.target)) {
+                hideSuccessMessage();
+            }
+            
+            if (errorMessage.style.display === 'block' && !errorMessage.contains(e.target)) {
+                hideErrorMessage();
+            }
+        });
+    </script>
+</body>
+</html>

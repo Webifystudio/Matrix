@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MATRIX MC | Voting</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <style>
+        body {
+            font-family: 'Oxanium', sans-serif;
+            scroll-behavior: smooth;
+            background-color: #0a0a0a;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+        
+        .minecraft-bg {
+            background-image: url('https://images.unsplash.com/photo-1585771724684-38270d0d4a5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        
+        .section {
+            min-height: 100vh;
+            padding: 6rem 2rem;
+            position: relative;
+        }
+        
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(10,10,10,0.8) 0%, rgba(10,10,10,0.95) 100%);
+            z-index: -1;
+        }
+        
+        .glow-text {
+            text-shadow: 0 0 10px rgba(74, 222, 128, 0.7);
+        }
+        
+        .glow-box {
+            box-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .glow-box:hover {
+            box-shadow: 0 0 30px rgba(74, 222, 128, 0.5);
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background-color: #4ade80;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(74, 222, 128, 0.3);
+        }
+        
+        .vote-card {
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(74, 222, 128, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .vote-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(74, 222, 128, 0.5);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 1s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .scroll-down {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #4ade80;
+            font-size: 2rem;
+            animation: bounce 2s infinite;
+            cursor: pointer;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0) translateX(-50%); }
+            40% { transform: translateY(-20px) translateX(-50%); }
+            60% { transform: translateY(-10px) translateX(-50%); }
+        }
+        
+        /* Countdown timer */
+        .countdown {
+            font-family: 'Oxanium', monospace;
+            font-size: 1.5rem;
+            color: #4ade80;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        
+        .countdown span {
+            display: inline-block;
+            min-width: 2.5rem;
+            padding: 0.5rem;
+            background: rgba(20, 20, 20, 0.8);
+            border-radius: 5px;
+            margin: 0 0.2rem;
+        }
+        
+        /* Leaderboard */
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(74, 222, 128, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .leaderboard-item:hover {
+            background: rgba(74, 222, 128, 0.1);
+        }
+        
+        .leaderboard-rank {
+            font-weight: bold;
+            color: #4ade80;
+            width: 2rem;
+            text-align: center;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            display: none;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Winner crown */
+        .crown {
+            color: gold;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.7);
+        }
+
+        /* Stats */
+        .stats-container {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .stat-box {
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid rgba(74, 222, 128, 0.2);
+            padding: 1.5rem 2rem;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 150px;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #4ade80;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #a0a0a0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .winner-info {
+            background: rgba(255, 215, 0, 0.1);
+            border-left: 4px solid gold;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .section {
+                padding: 5rem 1rem;
+            }
+            
+            .vote-card {
+                padding: 1.5rem;
+            }
+            
+            .text-6xl {
+                font-size: 3rem;
+            }
+            
+            .text-4xl {
+                font-size: 2rem;
+            }
+            
+            .stats-container {
+                gap: 1rem;
+            }
+            
+            .stat-box {
+                padding: 1rem 1.5rem;
+                min-width: 120px;
+            }
+            
+            .stat-value {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body class="text-gray-200">
+    <!-- Header -->
+    <header class="fixed w-full bg-black bg-opacity-90 z-50 border-b border-gray-800">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="text-2xl font-bold text-green-500 glow-text">
+                    MATRIX<span class="text-white">MC</span>
+                </div>
+                
+                <nav class="hidden md:flex space-x-8">
+                    <a href="index.html" class="nav-link text-sm uppercase tracking-wider hover:text-green-400">Home</a>
+                </nav>
+                
+                <div class="md:hidden">
+                    <button id="menu-toggle" class="text-gray-300 hover:text-green-400 focus:outline-none">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile menu -->
+            <div id="mobile-menu" class="hidden md:hidden mt-4 pb-2">
+                <div class="flex flex-col space-y-3">
+                    <a href="index.html" class="nav-link text-sm uppercase tracking-wider hover:text-green-400">Home</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="section minecraft-bg flex items-center justify-center">
+        <div class="container mx-auto px-4 text-center">
+            <div class="floating">
+                <h1 class="text-4xl md:text-6xl font-bold mb-6 text-white glow-text">
+                    <span class="text-green-500">MATRIX</span> VOTING
+                </h1>
+            </div>
+            <p class="text-xl md:text-2xl mb-8 text-gray-300 max-w-3xl mx-auto fade-in">
+                Vote daily to support our server and get rewards!
+            </p>
+            
+            <!-- Stats -->
+            <div class="stats-container">
+                <div class="stat-box glow-box">
+                    <div class="stat-value" id="total-votes">0</div>
+                    <div class="stat-label">Total Votes</div>
+                </div>
+                <div class="stat-box glow-box">
+                    <div class="stat-value" id="today-votes">0</div>
+                    <div class="stat-label">Today's Votes</div>
+                </div>
+            </div>
+            
+            <!-- Vote Button (Will be hidden if already voted) -->
+            <div id="vote-button-container" class="mt-8">
+                <button id="vote-btn" class="btn-primary px-8 py-4 rounded-lg text-lg font-semibold text-white pulse">
+                    <i class="fas fa-vote-yea mr-2"></i> 
+                    <span id="vote-text">VOTE NOW</span>
+                    <span id="vote-spinner" class="spinner"></span>
+                </button>
+            </div>
+            
+            <!-- Countdown Timer (Shows when already voted) -->
+            <div id="countdown-container" class="hidden mt-8">
+                <h3 class="text-xl font-semibold mb-4 text-green-400">NEXT VOTE IN:</h3>
+                <div class="countdown" id="countdown-timer">
+                    <span id="countdown-hours">00</span>:
+                    <span id="countdown-minutes">00</span>:
+                    <span id="countdown-seconds">00</span>
+                </div>
+                <p class="text-gray-400 mt-2">You can vote again after 24 hours</p>
+            </div>
+            
+            <div class="scroll-down" onclick="scrollToSection('winners')">
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- Winners Section -->
+    <section id="winners" class="section bg-gradient-to-b from-black to-gray-900">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-white">
+                    DAILY <span class="text-green-500">WINNERS</span>
+                </h2>
+                <div class="w-24 h-1 bg-green-500 mx-auto"></div>
+            </div>
+            
+            <div class="max-w-4xl mx-auto">
+                <div class="vote-card p-8 rounded-lg">
+                    <div class="text-center">
+                        <i class="fas fa-crown crown text-5xl mb-4"></i>
+                        <h3 class="text-2xl font-bold mb-2" id="winner-name">Loading...</h3>
+                        <p class="text-gray-400 mb-4">Today's Lucky Voter</p>
+                        
+                        <div class="winner-info text-left">
+                            <p class="text-gray-300 mb-2"><i class="fas fa-info-circle mr-2 text-yellow-400"></i> Winners are selected automatically at midnight IST (12:00 AM)</p>
+                            <p class="text-gray-300"><i class="fas fa-discord mr-2 text-indigo-400"></i> Winners are announced on our Discord server</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Leaderboard Section -->
+    <section id="leaderboard" class="section bg-gradient-to-b from-gray-900 to-black">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-white">
+                    TOP <span class="text-green-500">VOTERS</span>
+                </h2>
+                <div class="w-24 h-1 bg-green-500 mx-auto"></div>
+                <p class="text-gray-400 max-w-2xl mx-auto mt-4">All-time leaderboard of our most active voters</p>
+            </div>
+            
+            <div class="max-w-4xl mx-auto">
+                <div class="vote-card p-8 rounded-lg">
+                    <div id="leaderboard-list">
+                        <div class="leaderboard-item">
+                            <div class="leaderboard-rank">1</div>
+                            <div class="flex-1">Loading...</div>
+                            <div class="text-green-500">0 votes</div>
+                        </div>
+                        <div class="leaderboard-item">
+                            <div class="leaderboard-rank">2</div>
+                            <div class="flex-1">Loading...</div>
+                            <div class="text-green-500">0 votes</div>
+                        </div>
+                        <div class="leaderboard-item">
+                            <div class="leaderboard-rank">3</div>
+                            <div class="flex-1">Loading...</div>
+                            <div class="text-green-500">0 votes</div>
+                        </div>
+                        <div class="leaderboard-item">
+                            <div class="leaderboard-rank">4</div>
+                            <div class="flex-1">Loading...</div>
+                            <div class="text-green-500">0 votes</div>
+                        </div>
+                        <div class="leaderboard-item">
+                            <div class="leaderboard-rank">5</div>
+                            <div class="flex-1">Loading...</div>
+                            <div class="text-green-500">0 votes</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black py-12 border-t border-gray-800">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold text-green-500 mb-4">MATRIX MC</h3>
+                    <p class="text-gray-500 text-sm">
+                        Vote daily to support our server and get rewards!
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4 text-gray-300">QUICK LINKS</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#home" class="text-gray-500 hover:text-green-400 transition text-sm">Home</a></li>
+                        <li><a href="#winners" class="text-gray-500 hover:text-green-400 transition text-sm">Winners</a></li>
+                        <li><a href="#leaderboard" class="text-gray-500 hover:text-green-400 transition text-sm">Leaderboard</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4 text-gray-300">CONNECT</h4>
+                    <ul class="space-y-2">
+                        <li><a href="https://discord.gg/b6hgMtU5ay" class="text-gray-500 hover:text-green-400 transition text-sm"><i class="fab fa-discord mr-2"></i> Discord</a></li>
+                        <li><a href="#" class="text-gray-500 hover:text-green-400 transition text-sm"><i class="fab fa-youtube mr-2"></i> YouTube</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center">
+                <p class="text-gray-600 text-sm">
+                    &copy; 2025 MATRIX MC. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Username Modal -->
+    <div id="username-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-900 rounded-lg p-8 max-w-md w-full mx-4 border border-green-500 glow-box">
+            <h3 class="text-xl font-bold mb-4 text-green-500">Enter Your Minecraft Username</h3>
+            <input type="text" id="minecraft-username" placeholder="Your Minecraft username" 
+                class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-green-500">
+            <div class="flex justify-end space-x-4">
+                <button id="cancel-username" class="px-4 py-2 text-gray-300 hover:text-white">Cancel</button>
+                <button id="submit-username" class="btn-primary px-6 py-2 rounded-lg font-semibold">
+                    <span id="submit-username-text">Submit</span>
+                    <span id="submit-username-spinner" class="spinner"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-900 rounded-lg p-8 max-w-md w-full mx-4 border border-green-500 glow-box text-center">
+            <i class="fas fa-check-circle text-green-500 text-5xl mb-4"></i>
+            <h3 class="text-xl font-bold mb-2 text-white">Vote Successful!</h3>
+            <p class="text-gray-300 mb-6">Thank you for voting. You can vote again in <span id="next-vote-time"></span>.</p>
+            <button id="close-success" class="btn-primary px-6 py-2 rounded-lg font-semibold">Close</button>
+        </div>
+    </div>
+
+<script>
+    // Firebase configuration
+    const firebaseConfig = {
+    apiKey: "AIzaSyDj6TSp7nvuLqvQ6CLqJQTxJFHIwHHbtNE",
+    authDomain: "matrix-ed062.firebaseapp.com",
+    projectId: "matrix-ed062",
+    storageBucket: "matrix-ed062.firebasestorage.app",
+    messagingSenderId: "82407502701",
+    appId: "1:82407502701:web:c1af23c4606c2fcbd86064",
+    measurementId: "G-02680ERGSV"
+  };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    
+    // Discord Webhook URL
+    const WEBHOOK_URL = 'https://discord.com/api/webhooks/1378036596825129052/JvBsS0v7e1EwD2bbc_4R_VjeDXCnQS6ZMRvSn6-_C5tUbBSkH5cw_uClTgksCxKpROqH';
+    
+    // DOM Elements
+    const voteBtn = document.getElementById('vote-btn');
+    const voteText = document.getElementById('vote-text');
+    const voteSpinner = document.getElementById('vote-spinner');
+    const voteButtonContainer = document.getElementById('vote-button-container');
+    const countdownContainer = document.getElementById('countdown-container');
+    const countdownTimer = document.getElementById('countdown-timer');
+    const countdownHours = document.getElementById('countdown-hours');
+    const countdownMinutes = document.getElementById('countdown-minutes');
+    const countdownSeconds = document.getElementById('countdown-seconds');
+    
+    const usernameModal = document.getElementById('username-modal');
+    const minecraftUsernameInput = document.getElementById('minecraft-username');
+    const submitUsernameBtn = document.getElementById('submit-username');
+    const submitUsernameText = document.getElementById('submit-username-text');
+    const submitUsernameSpinner = document.getElementById('submit-username-spinner');
+    const cancelUsernameBtn = document.getElementById('cancel-username');
+    
+    const successModal = document.getElementById('success-modal');
+    const closeSuccessBtn = document.getElementById('close-success');
+    const nextVoteTimeElement = document.getElementById('next-vote-time');
+    
+    const winnerName = document.getElementById('winner-name');
+    
+    const leaderboardList = document.getElementById('leaderboard-list');
+    const totalVotesElement = document.getElementById('total-votes');
+    const todayVotesElement = document.getElementById('today-votes');
+    
+    // Global variables
+    let hasVotedToday = false;
+    let username = localStorage.getItem('matrixMCUsername') || '';
+    let nextVoteTime = null;
+    let leaderboardData = [];
+    let totalVotes = 0;
+    let todayVotes = 0;
+    
+    // Initialize the app
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if user has already voted today
+        checkVoteStatus();
+        
+        // Load current winner
+        loadCurrentWinner();
+        
+        // Load leaderboard
+        loadLeaderboard();
+        
+        // Load vote statistics
+        loadVoteStatistics();
+        
+        // Set up event listeners
+        setupEventListeners();
+        
+        // Start timers
+        startTimers();
+    });
+    
+    function setupEventListeners() {
+        // Vote button click
+        voteBtn.addEventListener('click', handleVoteClick);
+        
+        // Username modal buttons
+        submitUsernameBtn.addEventListener('click', handleUsernameSubmit);
+        cancelUsernameBtn.addEventListener('click', () => {
+            usernameModal.classList.add('hidden');
+        });
+        
+        // Success modal button
+        closeSuccessBtn.addEventListener('click', () => {
+            successModal.classList.add('hidden');
+        });
+    }
+    
+    async function checkVoteStatus() {
+        try {
+            // Check local storage for last vote time
+            const lastVoteTime = localStorage.getItem('matrixMCLastVote');
+            
+            if (lastVoteTime) {
+                const lastVoteDate = new Date(parseInt(lastVoteTime));
+                const now = new Date();
+                
+                // Check if 24 hours have passed since last vote
+                const timeDiff = now - lastVoteDate;
+                const hoursDiff = timeDiff / (1000 * 60 * 60);
+                
+                if (hoursDiff < 24) {
+                    // User has voted within last 24 hours
+                    hasVotedToday = true;
+                    nextVoteTime = new Date(lastVoteDate.getTime() + (24 * 60 * 60 * 1000));
+                    updateVoteUI();
+                    startCountdown();
+                } else {
+                    // It's been more than 24 hours, can vote again
+                    hasVotedToday = false;
+                    localStorage.removeItem('matrixMCLastVote');
+                    updateVoteUI();
+                }
+            } else {
+                hasVotedToday = false;
+                updateVoteUI();
+            }
+        } catch (error) {
+            console.error('Error checking vote status:', error);
+        }
+    }
+    
+    function updateVoteUI() {
+        if (hasVotedToday) {
+            voteButtonContainer.classList.add('hidden');
+            countdownContainer.classList.remove('hidden');
+        } else {
+            voteButtonContainer.classList.remove('hidden');
+            countdownContainer.classList.add('hidden');
+        }
+    }
+    
+    function handleVoteClick() {
+        if (username) {
+            // Username already exists, proceed to vote
+            submitVote();
+        } else {
+            // Ask for username
+            usernameModal.classList.remove('hidden');
+            minecraftUsernameInput.focus();
+        }
+    }
+    
+    async function handleUsernameSubmit() {
+        const usernameInput = minecraftUsernameInput.value.trim();
+        
+        if (!usernameInput) {
+            alert('Please enter your Minecraft username');
+            return;
+        }
+        
+        submitUsernameText.textContent = 'Saving...';
+        submitUsernameSpinner.style.display = 'inline-block';
+        submitUsernameBtn.disabled = true;
+        
+        try {
+            // Save username to local storage
+            localStorage.setItem('matrixMCUsername', usernameInput);
+            username = usernameInput;
+            
+            // Close modal
+            usernameModal.classList.add('hidden');
+            minecraftUsernameInput.value = '';
+            
+            // Proceed with voting
+            submitVote();
+        } catch (error) {
+            console.error('Error saving username:', error);
+            alert('There was an error saving your username. Please try again.');
+        } finally {
+            submitUsernameText.textContent = 'Submit';
+            submitUsernameSpinner.style.display = 'none';
+            submitUsernameBtn.disabled = false;
+        }
+    }
+    
+    async function submitVote() {
+        voteText.textContent = 'Processing...';
+        voteSpinner.style.display = 'inline-block';
+        voteBtn.disabled = true;
+        
+        try {
+            // Get current date in IST
+            const now = new Date();
+            const todayIST = convertToIST(now);
+            const todayDateStr = formatDate(todayIST);
+            
+            // Save vote to Firestore
+            await db.collection('votes').add({
+                username: username,
+                date: todayDateStr,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // Update user's vote count in leaderboard
+            await updateLeaderboard(username);
+            
+            // Set last vote time in local storage
+            localStorage.setItem('matrixMCLastVote', now.getTime().toString());
+            hasVotedToday = true;
+            nextVoteTime = new Date(now.getTime() + (24 * 60 * 60 * 1000));
+            
+            // Update UI
+            updateVoteUI();
+            startCountdown();
+            
+            // Update vote statistics
+            await loadVoteStatistics();
+            
+            // Send Discord notification
+            await sendDiscordNotification(`${username} voted successfully!`, 0x00ff00);
+            
+            // Show success modal
+            showSuccessModal();
+        } catch (error) {
+            console.error('Error submitting vote:', error);
+            alert('There was an error submitting your vote. Please try again.');
+        } finally {
+            voteText.textContent = 'VOTE NOW';
+            voteSpinner.style.display = 'none';
+            voteBtn.disabled = false;
+        }
+    }
+    
+    async function updateLeaderboard(username) {
+        try {
+            // Check if user already exists in leaderboard
+            const leaderboardRef = db.collection('leaderboard').doc('alltime');
+            const doc = await leaderboardRef.get();
+            
+            if (doc.exists) {
+                const data = doc.data();
+                const users = data.users || {};
+                
+                if (users[username]) {
+                    // Increment vote count
+                    users[username] += 1;
+                } else {
+                    // Add new user
+                    users[username] = 1;
+                }
+                
+                // Update leaderboard
+                await leaderboardRef.update({
+                    users: users,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } else {
+                // Create new leaderboard
+                await leaderboardRef.set({
+                    users: { [username]: 1 },
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+        } catch (error) {
+            console.error('Error updating leaderboard:', error);
+        }
+    }
+    
+    async function loadCurrentWinner() {
+        try {
+            const winnerRef = db.collection('winners').doc('current');
+            const doc = await winnerRef.get();
+            
+            if (doc.exists) {
+                const data = doc.data();
+                winnerName.textContent = data.username || 'No winner yet';
+                
+                // Check if we need to select a new winner (after midnight IST)
+                const winnerDate = data.date || '';
+                const today = formatDate(convertToIST(new Date()));
+                
+                if (winnerDate !== today) {
+                    // Time to select a new winner (it's a new day)
+                    await selectNewWinner();
+                }
+            } else {
+                // No winner exists yet, select one
+                await selectNewWinner();
+            }
+        } catch (error) {
+            console.error('Error loading current winner:', error);
+            winnerName.textContent = 'Error loading winner';
+        }
+    }
+    
+    async function selectNewWinner() {
+        try {
+            // Get today's date in IST
+            const todayIST = convertToIST(new Date());
+            const todayDateStr = formatDate(todayIST);
+            
+            // Get yesterday's date to get yesterday's votes
+            const yesterdayIST = new Date(todayIST);
+            yesterdayIST.setDate(yesterdayIST.getDate() - 1);
+            const yesterdayDateStr = formatDate(yesterdayIST);
+            
+            // Check if winner already exists for today
+            const winnerRef = db.collection('winners').doc('current');
+            const currentWinner = await winnerRef.get();
+            
+            if (currentWinner.exists && currentWinner.data().date === todayDateStr) {
+                // Winner already selected for today
+                return;
+            }
+            
+            // Get all votes from yesterday (since winner is selected at midnight)
+            const votesSnapshot = await db.collection('votes')
+                .where('date', '==', yesterdayDateStr)
+                .get();
+            
+            if (votesSnapshot.empty) {
+                // No votes yesterday
+                winnerName.textContent = 'No votes yesterday';
+                await winnerRef.set({
+                    username: 'No votes yesterday',
+                    date: todayDateStr,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    isForced: false
+                });
+            } else {
+                // Select a random vote from yesterday
+                const votes = [];
+                votesSnapshot.forEach(doc => {
+                    votes.push(doc.data().username);
+                });
+                
+                const randomIndex = Math.floor(Math.random() * votes.length);
+                const winner = votes[randomIndex];
+                
+                // Update winner in Firestore
+                await winnerRef.set({
+                    username: winner,
+                    date: todayDateStr,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    isForced: false
+                });
+                
+                // Update UI
+                winnerName.textContent = winner;
+                
+                // Send Discord notification with embed
+                await sendDiscordWinnerNotification(winner);
+            }
+        } catch (error) {
+            console.error('Error selecting new winner:', error);
+            winnerName.textContent = 'Error selecting winner';
+        }
+    }
+    
+    async function loadLeaderboard() {
+        try {
+            const leaderboardRef = db.collection('leaderboard').doc('alltime');
+            const doc = await leaderboardRef.get();
+            
+            if (doc.exists) {
+                const data = doc.data();
+                const users = data.users || {};
+                
+                // Convert to array and sort by vote count
+                leaderboardData = Object.entries(users)
+                    .map(([username, votes]) => ({ username, votes }))
+                    .sort((a, b) => b.votes - a.votes)
+                    .slice(0, 5); // Top 5 only
+                
+                // Update UI
+                updateLeaderboardUI();
+            }
+        } catch (error) {
+            console.error('Error loading leaderboard:', error);
+        }
+    }
+    
+    async function loadVoteStatistics() {
+        try {
+            // Get total votes count
+            const votesSnapshot = await db.collection('votes').get();
+            totalVotes = votesSnapshot.size;
+            totalVotesElement.textContent = totalVotes;
+            
+            // Get today's votes count
+            const todayIST = convertToIST(new Date());
+            const todayDateStr = formatDate(todayIST);
+            const todayVotesSnapshot = await db.collection('votes')
+                .where('date', '==', todayDateStr)
+                .get();
+            
+            todayVotes = todayVotesSnapshot.size;
+            todayVotesElement.textContent = todayVotes;
+        } catch (error) {
+            console.error('Error loading vote statistics:', error);
+        }
+    }
+    
+    function updateLeaderboardUI() {
+        // Clear existing items
+        leaderboardList.innerHTML = '';
+        
+        if (leaderboardData.length === 0) {
+            // No data yet
+            const item = document.createElement('div');
+            item.className = 'leaderboard-item';
+            item.innerHTML = `
+                <div class="flex-1 text-center py-4 text-gray-500">No votes yet</div>
+            `;
+            leaderboardList.appendChild(item);
+            return;
+        }
+        
+        // Add each leaderboard item
+        leaderboardData.forEach((user, index) => {
+            const item = document.createElement('div');
+            item.className = 'leaderboard-item';
+            item.innerHTML = `
+                <div class="leaderboard-rank">${index + 1}</div>
+                <div class="flex-1">${user.username}</div>
+                <div class="text-green-500">${user.votes} vote${user.votes !== 1 ? 's' : ''}</div>
+            `;
+            leaderboardList.appendChild(item);
+        });
+    }
+    
+    function startTimers() {
+        // Start vote countdown if needed
+        if (hasVotedToday) {
+            startCountdown();
+        }
+        
+        // Update every second
+        setInterval(() => {
+            if (hasVotedToday) {
+                updateCountdown();
+            }
+        }, 1000);
+    }
+    
+    function startCountdown() {
+        updateCountdown();
+    }
+    
+    function updateCountdown() {
+        const now = new Date();
+        const diff = nextVoteTime - now;
+        
+        if (diff <= 0) {
+            // 24 hours have passed, can vote again
+            hasVotedToday = false;
+            localStorage.removeItem('matrixMCLastVote');
+            updateVoteUI();
+            return;
+        }
+        
+        // Calculate hours, minutes, seconds
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        // Update countdown display
+        countdownHours.textContent = hours.toString().padStart(2, '0');
+        countdownMinutes.textContent = minutes.toString().padStart(2, '0');
+        countdownSeconds.textContent = seconds.toString().padStart(2, '0');
+    }
+    
+    function showSuccessModal() {
+        // Calculate time until next vote (24 hours from now)
+        const now = new Date();
+        const nextVote = new Date(now.getTime() + (24 * 60 * 60 * 1000));
+        const diff = nextVote - now;
+        
+        // Convert to hours and minutes
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        
+        // Update the success message
+        nextVoteTimeElement.textContent = `${hours} hours and ${minutes} minutes`;
+        
+        // Show the modal
+        successModal.classList.remove('hidden');
+    }
+    
+    async function sendDiscordNotification(message, color) {
+        try {
+            const response = await fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    content: message,
+                    embeds: color ? [{
+                        color: color,
+                        description: message
+                    }] : []
+                })
+            });
+            
+            if (!response.ok) {
+                console.error('Discord webhook error:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error sending Discord notification:', error);
+        }
+    }
+    
+    async function sendDiscordWinnerNotification(winner) {
+        try {
+            const response = await fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    embeds: [{
+                        title: "🎉 Daily Vote Winner 🎉",
+                        description: `Congratulations to **${winner}** for being today's lucky voter!\n\nKeep voting daily for a chance to win!`,
+                        color: 0xffd700, // Gold color
+                        thumbnail: {
+                            url: "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/party-popper_1f389.png"
+                        },
+                        footer: {
+                            text: "Matrix MC Voting System"
+                        },
+                        timestamp: new Date().toISOString()
+                    }]
+                })
+            });
+            
+            if (!response.ok) {
+                console.error('Discord webhook error:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error sending Discord winner notification:', error);
+        }
+    }
+    
+    // Helper functions
+    function convertToIST(date) {
+        // Convert to IST (UTC+5:30)
+        return new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
+    }
+    
+    function formatDate(date) {
+        // Format as YYYY-MM-DD
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    
+    function scrollToSection(sectionId) {
+        const section = document.getElementById(sectionId);
+        if (section) {
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+    
+    // Mobile menu toggle
+    document.getElementById('menu-toggle').addEventListener('click', function() {
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenu.classList.toggle('hidden');
+    });
+</script>
+</body>
+</html>
